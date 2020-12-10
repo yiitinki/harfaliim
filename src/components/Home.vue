@@ -1,9 +1,9 @@
 <template>
   <div class="hello">
-    <img src="../assets/logo.png" width="300" height="280">
+    <img src="../assets/logo.png" width="90%" height="100%">
     <div class="question">{{description}}</div>
 
-    <div class="sucess" v-if="answer.join('') == words[0]"> Tebrikler! </div>
+    <div class="sucess" v-if="answer.join('').toLowerCase() == words[0].toLowerCase()"> Tebrikler! </div>
 
     <ul>
         <li v-for="(char,i) of words[0]" :key="i">
@@ -95,6 +95,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
 h3 {
     margin: 40px 0 0;
 }
@@ -116,7 +117,7 @@ input{
     margin:0;
     width:20px;
     font-size:20px;
-    text-transform:capitalize;
+    text-transform:lowercase;
 }
 button{
     font-size:18px;
