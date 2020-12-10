@@ -117,7 +117,7 @@ input{
     margin:0;
     width:20px;
     font-size:20px;
-    text-transform:capitalize;
+    text-transform:lowercase;
 }
 button{
     font-size:18px;
