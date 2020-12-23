@@ -7,8 +7,8 @@
 
     <ul>
         <li v-for="(char,i) of words[0]" :key="i">
-            <input :ref="'input'" v-if="chars.indexOf(i) != -1" :value="char" maxlength="1">
-            <input :ref="'input'" v-else v-model="answer[i]" maxlength="1" @keyup="nextChar(i)" >
+            <input :ref="'input'" v-if="chars.indexOf(i) != -1" :value="char" maxlength="1" disabled>
+            <input :ref="'input'" v-else v-model="answer[i]" maxlength="1" @keyup="nextChar(i)" disabled>
         </li>
     </ul>
 
@@ -16,6 +16,18 @@
     <p></p>
     <button class="next" @click="clearAnswer()"> Cevap Alanını Temizle </button>
     <button class="next" @click="nextWord()"> Sonraki Soru</button>
+    <p></p>
+    <div class="keyboard">
+        <p>
+            <button class="letter" @click="type(letter)" v-for="(letter,i) of keyboard[0]" :key="i">{{letter.toUpperCase()}}</button>
+        </p>
+        <p>
+            <button class="letter" @click="type(letter)" v-for="(letter,i) of keyboard[1]" :key="i">{{ letter == "i" ? "İ" : letter.toUpperCase()}}</button>
+        </p>
+        <p>
+            <button class="letter" @click="type(letter)" v-for="(letter,i) of keyboard[2]" :key="i">{{letter.toUpperCase()}}</button>
+        </p>
+    </div>
   </div>
 </template>
 
@@ -29,7 +41,12 @@ export default {
           description: '',
           words: [],
           chars: [],
-          answer: []
+          answer: [],
+          keyboard: [
+              ["q","w","e","r","t","y","u","ı","o","p","ğ","ü"],
+              ["a","s","d","f","g","h","j","k","l","ş","i"],
+              ["z","x","c","v","b","n","m","ö","ç"],
+            ]
       }
   },
   async created() {
@@ -52,7 +69,7 @@ export default {
       nextWord(){
           this.clearAnswer();
           if(this.words.length != 1){
-              this.words.shift();
+            this.words.shift();
             this.getDescription();
           }else{
               this.getWords();
@@ -88,6 +105,17 @@ export default {
       clearAnswer(){
           this.answer = [];
           this.chars= [];
+      },
+
+      type(letter){
+        let nullIndex = this.focusAnswerBox()
+
+        nullIndex != -1 ? this.$set(this.answer, nullIndex, letter) : this.answer.push(letter);
+        
+      },
+
+      focusAnswerBox(){
+          return this.answer.findIndex(v => v == null);
       }
   }
 }
@@ -96,13 +124,23 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
+
+.hello{
+    display: flex;
+    flex-direction: column;
+    justify-content:center;
+}
+
+img{
+    margin-left:5%;
+}
+
 h3 {
     margin: 40px 0 0;
 }
 ul {
     list-style-type: none;
     padding: 0;
-    font-size:40px;
 }
 li {
     border-bottom:1px grey solid; 
@@ -119,19 +157,21 @@ input{
     font-size:20px;
     text-transform:lowercase;
 }
-button{
+
+.char,.next{
     font-size:18px;
     border:1px #36729A solid;
     padding: 10px;
     margin:0 20px;
     text-align: center;
 }
-button:hover{
+.char:hover,.next:hover{
     cursor:pointer
 }
 
 .question{
-    margin: 50px 0;
+    margin: 25px 0;
+    font-size: 20px;
 }
 .char{
     background:#36729A;
@@ -144,4 +184,22 @@ button:hover{
     font-size:20px;
     color:green;
 }
+
+
+.keyboard p{
+    display: flex;
+    flex-direction: row;
+    margin: 5px 0;
+}
+
+.letter{
+    flex-grow:1;
+    width: 100%;
+    height: 100%;
+    font-size:18px;
+    border:1px #36729A solid;
+    padding:10px 0;
+}
+
+
 </style>
