@@ -12,8 +12,10 @@
     "@capacitor/cli": "^2.4.4",
     "@capacitor/core": "^2.4.4",
     "axios": "^0.19.2",
+    "cordova-plugin-cocoapod-support": "^1.6.2",
     "core-js": "^3.6.5",
-    "vue": "^2.6.11"
+    "vue": "^2.6.11",
+    "yandex-appmetrica-plugin-cordova": "^1.0.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.4.0",
