@@ -60,7 +60,7 @@ export default {
       async getWords() {
         try {
           const res = await axios.get(`https://sozluk.gov.tr/icerik`);
-          this.words = res.data.karistirma.map(l => l.dogru);
+          this.words = res.data.karistirma.map(l => l.dogru.trim());
           this.words = this.words.map(w => w.replace("â","a"))
           this.words = this.words.map(w => w.replace("î","i"))
           this.words = this.words.map(w => w.replace("û","u"))
