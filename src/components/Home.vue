@@ -149,8 +149,8 @@ a {
     color: #42b983;
 }
 input{
-    border:0;
     margin:0;
+    margin-top:5px;
     width:20px;
     font-size:20px;
     text-transform:lowercase;
