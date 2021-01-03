@@ -5,7 +5,7 @@
     </div>
     <div class="question">{{description}}</div>
 
-    <div class="sucess" v-if="answer.join('').toLowerCase() == words[0].toLowerCase()"> Tebrikler! </div>
+    <div class="sucess" v-if="(answer.join('').toLowerCase() == words[0].toLowerCase()) && this.chars.length != this.answer.length"> Tebrikler! </div>
 
     <ul>
         <li v-for="(char,i) of words[0]" :key="i">
@@ -30,6 +30,7 @@
         </p>
         <p>
             <button class="letter" @click="type(letter)" v-for="(letter,i) of keyboard[2]" :key="i">{{letter.toUpperCase()}}</button>
+            <button class="letter" @click="deleteLetter()" style="background:#36729A"> SİL </button>
         </p>
     </div>
   </div>
@@ -65,6 +66,10 @@ export default {
           this.words = this.words.map(w => w.replace("î","i"))
           this.words = this.words.map(w => w.replace("û","u"))
           this.getDescription();
+
+          this.answer.length = this.words[0].length;
+          this.answer.fill('');
+
         } catch(e){
             console.error(e);
         }
@@ -78,6 +83,8 @@ export default {
           }else{
               this.getWords();
           }
+          this.answer.length = this.words[0].length;
+          this.answer.fill('');
       },
 
       getChar(){
@@ -107,19 +114,33 @@ export default {
       },
 
       clearAnswer(){
-          this.answer = [];
+          this.answer.length = this.words[0].length;
+          this.answer.fill('');
           this.chars= [];
       },
 
       type(letter){
-        let nullIndex = this.focusAnswerBox()
 
-        nullIndex != -1 ? this.$set(this.answer, nullIndex, letter) : this.answer.push(letter);
+        this.$set(this.answer, this.focusAnswerBox(), letter)
+        console.log(this.answer);
         
       },
 
       focusAnswerBox(){
-          return this.answer.findIndex(v => v == null);
+          return this.answer.findIndex(v => v == '');
+      },
+
+      deleteLetter(){
+
+        console.log(this.chars);
+
+        let index = this.focusAnswerBox() != -1 ? this.focusAnswerBox() : this.answer.length;
+
+        while(this.chars.includes(index-1) && index != 0){
+            index--;
+        }
+
+        this.$set(this.answer, index -1, '')
       }
   }
 }
@@ -185,6 +206,8 @@ input{
     font-size:20px;
     color:green;
 }
+
+
 
 
 .keyboard p{
