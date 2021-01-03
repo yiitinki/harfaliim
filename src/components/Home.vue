@@ -6,6 +6,7 @@
     <div class="question">{{description}}</div>
 
     <div class="sucess" v-if="(answer.join('').toLowerCase() == words[0].toLowerCase()) && this.chars.length != this.answer.length"> Tebrikler! </div>
+    <div class="warning" v-if="(this.chars.length == this.answer.length) || (answer.join('').length == words[0].length) && (answer.join('').toLowerCase() != words[0].toLowerCase())"> Bu sayılmaz, hadi baştan :) </div>
 
     <ul>
         <li v-for="(char,i) of words[0]" :key="i">
@@ -207,7 +208,10 @@ input{
     color:green;
 }
 
-
+.warning{
+    font-size:20px;
+    color:red;
+}
 
 
 .keyboard p{
