@@ -3,10 +3,29 @@
     <div>
         <img src="../assets/logo.png" width="90%" height="100%">
     </div>
-    <div class="question">{{description}}</div>
 
-    <div class="sucess" v-if="(answer.join('').toLowerCase() == words[0].toLowerCase()) && this.chars.length != this.answer.length"> Tebrikler! </div>
-    <div class="warning" v-if="(this.chars.length == this.answer.length) || (answer.join('').length == words[0].length) && (answer.join('').toLowerCase() != words[0].toLowerCase())"> Bu sayılmaz, hadi baştan :) </div>
+    <div class="splashBackground" v-show="!ready"></div>
+    
+    <div class="boxContainer" v-show="!ready">
+        <div class="box">
+            <p v-show="finish"><b>Toplam Puan:</b>  {{ score }}</p>
+
+            <p v-show="finish"> Efendim derin bir nefes alalım, hazırsanız tekrar deneyelim </p>
+            <p v-show="!finish"> Kuralları biliyorsunuz, toplam <b>4</b> dakikamız var efendim. Heyecana hiç gerek yok. Hazırsanız başlıyoruz </p>
+            <button class="char" @click="start()"> Hazırım !</button>
+        </div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="totalScore"> <b> Toplam Skor </b> <p>{{ score }}</p></div>
+        <div class="futureAward"><b> Soru Puanı </b> <p>{{ (words[0].length - chars.length) * 100 }}</p></div>
+        <div class="time"><b> Kalan Süre</b> <p>0{{ Math.floor(time / 60)}} : {{ (time % 60) || '00' }}</p> </div>
+    </div>
+
+    <div class="question" v-show="ready">{{description}}</div>
+
+    <div class="sucess" v-if="(this.answer.join('').toLowerCase() == this.words[0].toLowerCase()) && this.chars.length != this.answer.length"> Tebrikler! </div>
+    <div class="warning" v-if="(this.chars.length == this.answer.length) || (answer.join('').length == words[0].length) && (answer.join('').toLowerCase() != words[0].toLowerCase())"> Efendim şöyle bir derin nefes alalım, bir sonraki kelimemiz <b>{{ words[1].length }}</b> harflidir </div>
 
     <ul>
         <li v-for="(char,i) of words[0]" :key="i">
@@ -18,8 +37,9 @@
     <div style="display:flex;flex-direction:column;margin:5px;">
         <button class="char" @click="getChar()" v-show="answer.join('').length != words[0].length"> Harf Aliim </button>
 
-        <button class="next" @click="clearAnswer()"> Cevap Alanını Temizle </button>
+        <button class="next" @click="clearAnswer()" style="display:none"> Cevap Alanını Temizle </button>
         <button class="next" @click="nextWord()"> Sonraki Soru</button>
+        <button class="next" @click="reset()"> Baştan Oyna! </button>
     </div>
 
     <div class="keyboard">
@@ -44,10 +64,15 @@ export default {
   name: 'Home',
   data() {
       return {
+          interval: null,
+          ready: 0,
+          finish: 0,
           description: '',
           words: [],
           chars: [],
           answer: [],
+          score: 0,
+          time: 0,
           keyboard: [
               ["q","w","e","r","t","y","u","ı","o","p","ğ","ü"],
               ["a","s","d","f","g","h","j","k","l","ş","i"],
@@ -56,9 +81,23 @@ export default {
       }
   },
   async created() {
-      this.getWords();
+        this.getWords();
   },
   methods: {
+      start(){
+        this.ready = 1;
+        this.time = 60 * 4;
+        this.score = 0;
+        this.countDown();
+      },
+      reset(){
+        this.nextWord();
+        this.ready = 0;
+        this.time = 60 * 4;
+        this.score = 0;
+        this.countDownStop();
+        this.interval = null;
+      },
       async getWords() {
         try {
           const res = await axios.get(`https://sozluk.gov.tr/icerik`);
@@ -77,7 +116,11 @@ export default {
       },
 
       nextWord(){
-          this.clearAnswer();
+          this.countDown();
+          if(!this.ifSuccess){
+            this.score -= this.words[0].length * 100; // Reduce Score
+          }
+            this.clearAnswer();
           if(this.words.length != 1){
             this.words.shift();
             this.getDescription();
@@ -86,6 +129,7 @@ export default {
           }
           this.answer.length = this.words[0].length;
           this.answer.fill('');
+
       },
 
       getChar(){
@@ -123,7 +167,12 @@ export default {
       type(letter){
 
         this.$set(this.answer, this.focusAnswerBox(), letter)
-        console.log(this.answer);
+        
+        if(this.ifSuccess){
+            this.addScore();
+            this.countDownStop();
+        }
+
         
       },
 
@@ -142,8 +191,51 @@ export default {
         }
 
         this.$set(this.answer, index -1, '')
+      },
+      countDown(){
+
+        let self = this
+
+        if(!self.interval){
+            self.interval = setInterval(function(){
+
+                            self.time = self.time-1;
+                            if(self.time == 0){
+                                clearInterval(self.interval);
+                                self.finish = 1;
+                                self.ready = 0;
+                                self.interval = null
+                            }
+            },1000);
+        }
+        
+
+        
+          
+      },
+
+      countDownStop(){
+            clearInterval(this.interval);
+            this.interval = null
+      },
+      success(){
+          if(this.ifSuccess){
+              this.addScore();
+              return true;
+          }
+      },
+
+      addScore(){
+          this.score += (this.words[0].length - this.chars.length) * 100;
       }
-  }
+    },
+    
+    computed: {
+          ifSuccess(){
+              return (this.answer.join('').toLowerCase() == this.words[0].toLowerCase()) && this.chars.length != this.answer.length;
+          }
+    }
+
 }
 </script>
 
@@ -193,7 +285,7 @@ input{
 }
 
 .question{
-    margin: 25px 0;
+    margin: 0 5px;
     font-size: 20px;
 }
 .char{
@@ -227,6 +319,42 @@ input{
     font-size:18px;
     border:1px #36729A solid;
     padding:10px 0;
+}
+
+.splashBackground{
+    background:white;
+    opacity: 0.8;
+    position: fixed;
+    z-index:100;
+    height: 100%;
+    width: 100%;
+}
+
+.boxContainer {
+    z-index: 100;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.boxContainer .box{
+
+    background:#fff;
+    border-radius: 5%;
+    border:1px solid #f2f2f2;
+    padding:5%;
+
+}
+
+.scoreboard{
+    margin-top: 5%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    size: 16px;
 }
 
 
