@@ -18,24 +18,26 @@
 
     <div class="scoreboard">
         <div class="totalScore"> <b> Toplam Skor </b> <p>{{ score }}</p></div>
-        <div class="futureAward"><b> Soru Puanı </b> <p>{{ (words[0].length - chars.length) * 100 }}</p></div>
+        <div class="futureAward"><b> Soru Puanı </b> <p>{{ (currentWord.length - chars.length) * 100 }}</p></div>
         <div class="time"><b> Kalan Süre</b> <p>0{{ Math.floor(time / 60)}} : {{ (time % 60) || '00' }}</p> </div>
     </div>
 
     <div class="question" v-show="ready">{{description}}</div>
 
-    <div class="sucess" v-if="(this.answer.join('').toLowerCase() == this.words[0].toLowerCase()) && this.chars.length != this.answer.length"> Tebrikler! </div>
-    <div class="warning" v-if="(this.chars.length == this.answer.length) || (answer.join('').length == words[0].length) && (answer.join('').toLowerCase() != words[0].toLowerCase())"> Efendim şöyle bir derin nefes alalım, bir sonraki kelimemiz <b>{{ words[1].length }}</b> harflidir </div>
+    <div class="sucess" v-if="(this.answer.join('').toLowerCase() == this.currentWord.toLowerCase()) && this.chars.length != this.answer.length"> Tebrikler! </div>
+    <div class="warning" v-if="(this.chars.length == this.answer.length) || (answer.join('').length == currentWord.length) && (answer.join('').toLowerCase() != currentWord.toLowerCase())"> Efendim şöyle bir derin nefes alalım, bir sonraki kelimemiz <b>{{ words[1].length }}</b> harflidir </div>
+    <div class="warning" v-if="(chars.length == currentWord.length)"> Opps, let's try with next word! </div>
+    <div class="warning" v-if="(answer.join('').length == currentWord.length) && (answer.join('').toLowerCase() != currentWord.toLowerCase())"> Aradığımız kelime bu değil efendim, bi kere daha deneyelim! </div>
 
     <ul>
-        <li v-for="(char,i) of words[0]" :key="i">
+        <li v-for="(char,i) of currentWord " :key="i">
             <input :ref="'input'" v-if="chars.indexOf(i) != -1" :value="char" maxlength="1" disabled>
             <input :ref="'input'" v-else v-model="answer[i]" maxlength="1" @keyup="nextChar(i)" disabled>
         </li>
     </ul>
 
     <div style="display:flex;flex-direction:column;margin:5px;">
-        <button class="char" @click="getChar()" v-show="answer.join('').length != words[0].length"> Harf Aliim </button>
+        <button class="char" @click="getChar()" v-show="answer.join('').length != currentWord.length"> Harf Aliim </button>
 
         <button class="next" @click="clearAnswer()" style="display:none"> Cevap Alanını Temizle </button>
         <button class="next" @click="nextWord()"> Sonraki Soru</button>
@@ -59,6 +61,7 @@
 
 <script>
 import axios from 'axios';
+import allWords from './words.json';
 
 export default {
   name: 'Home',
@@ -68,7 +71,8 @@ export default {
           ready: 0,
           finish: 0,
           description: '',
-          words: [],
+          words: allWords,
+          currentWord : '',
           chars: [],
           answer: [],
           score: 0,
@@ -81,7 +85,7 @@ export default {
       }
   },
   async created() {
-        this.getWords();
+        this.bringWord();
   },
   methods: {
       start(){
@@ -98,37 +102,24 @@ export default {
         this.countDownStop();
         this.interval = null;
       },
-      async getWords() {
-        try {
-          const res = await axios.get(`https://sozluk.gov.tr/icerik`);
-          this.words = res.data.karistirma.map(l => l.dogru.trim());
-          this.words = this.words.map(w => w.replace("â","a"))
-          this.words = this.words.map(w => w.replace("î","i"))
-          this.words = this.words.map(w => w.replace("û","u"))
-          this.getDescription();
+      bringWord(){
+          this.currentWord = this.words[Math.floor(Math.random() * this.words.length)];
+          this.answer.length = this.currentWord.length;
+        this.answer.fill('');
 
-          this.answer.length = this.words[0].length;
-          this.answer.fill('');
-
-        } catch(e){
-            console.error(e);
-        }
+        this.getDescription();
       },
 
       nextWord(){
-          this.countDown();
-          if(!this.ifSuccess){
-            this.score -= this.words[0].length * 100; // Reduce Score
-          }
-            this.clearAnswer();
-          if(this.words.length != 1){
-            this.words.shift();
-            this.getDescription();
-          }else{
-              this.getWords();
-          }
-          this.answer.length = this.words[0].length;
-          this.answer.fill('');
+        this.countDown();
+
+        if(!this.ifSuccess){
+            this.score -= this.currentWord.length * 100; // Reduce Score
+        }
+
+        this.clearAnswer();
+
+        this.bringWord();
 
       },
 
@@ -137,17 +128,17 @@ export default {
         while(this.chars.indexOf(charNum) != -1){
             charNum = this.generateChar();
         }
-        this.answer[charNum] = this.words[0][charNum];
+        this.answer[charNum] = this.currentWord[charNum];
         this.chars.push(charNum);
       },
 
       generateChar(){
-          return Math.floor(Math.random() * this.words[0].length);
+          return Math.floor(Math.random() * this.currentWord.length);
       },
 
       async getDescription(){
         try {
-          const res = await axios.get('https://sozluk.gov.tr/gts?ara='+encodeURIComponent(this.words[0]));
+          const res = await axios.get('https://sozluk.gov.tr/gts?ara='+encodeURIComponent(this.currentWord));
           this.description = res.data[0].anlamlarListe[0].anlam;
         } catch(e){
             console.error(e);
@@ -159,7 +150,7 @@ export default {
       },
 
       clearAnswer(){
-          this.answer.length = this.words[0].length;
+          this.answer.length = this.currentWord.length;
           this.answer.fill('');
           this.chars= [];
       },
@@ -181,8 +172,6 @@ export default {
       },
 
       deleteLetter(){
-
-        console.log(this.chars);
 
         let index = this.focusAnswerBox() != -1 ? this.focusAnswerBox() : this.answer.length;
 
@@ -226,13 +215,13 @@ export default {
       },
 
       addScore(){
-          this.score += (this.words[0].length - this.chars.length) * 100;
+          this.score += (this.currentWord.length - this.chars.length) * 100;
       }
     },
     
     computed: {
           ifSuccess(){
-              return (this.answer.join('').toLowerCase() == this.words[0].toLowerCase()) && this.chars.length != this.answer.length;
+              return (this.answer.join('').toLowerCase() == this.currentWord.toLowerCase()) && this.chars.length != this.answer.length;
           }
     }
 
