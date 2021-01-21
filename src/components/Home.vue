@@ -25,8 +25,7 @@
     <div class="question" v-show="ready">{{description}}</div>
 
     <div class="sucess" v-if="(this.answer.join('').toLowerCase() == this.currentWord.toLowerCase()) && this.chars.length != this.answer.length"> Tebrikler! </div>
-    <div class="warning" v-if="(this.chars.length == this.answer.length) || (answer.join('').length == currentWord.length) && (answer.join('').toLowerCase() != currentWord.toLowerCase())"> Efendim şöyle bir derin nefes alalım, bir sonraki kelimemiz <b>{{ words[1].length }}</b> harflidir </div>
-    <div class="warning" v-if="(chars.length == currentWord.length)"> Opps, let's try with next word! </div>
+    <div class="warning" v-if="(chars.length == currentWord.length)"> Efendim şöyle bir derin nefes alalım, bu nazar boncuğu olsun. Sonraki soruya bakalım! </div>
     <div class="warning" v-if="(answer.join('').length == currentWord.length) && (answer.join('').toLowerCase() != currentWord.toLowerCase())"> Aradığımız kelime bu değil efendim, bi kere daha deneyelim! </div>
 
     <ul>
